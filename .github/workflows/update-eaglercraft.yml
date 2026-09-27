@@ -1,4 +1,3 @@
-```yaml
 name: Update Eaglercraft
 
 on:
@@ -64,4 +63,3 @@ jobs:
 
           git commit -m "chore: update Eaglercraft"
           git push
-```
