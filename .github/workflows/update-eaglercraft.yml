@@ -1,0 +1,67 @@
+```yaml
+name: Update Eaglercraft
+
+on:
+  push:
+    paths:
+      - ".github/workflows/update-eaglercraft.yml"
+  schedule:
+    # Every 24 hours
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Eaglercraft
+        run: |
+          curl -L --fail \
+            "https://cdn.eaglercraft.ru/dl/1.8.8/EaglercraftX_1.8_u53_WASM-GC_Offline.zip" \
+            -o eaglercraft.zip
+
+      - name: Extract Eaglercraft
+        run: |
+          rm -rf eaglercraft
+          mkdir eaglercraft
+          unzip -q eaglercraft.zip -d eaglercraft
+
+      - name: Find HTML and install as index.html
+        run: |
+          HTML_FILE=$(find eaglercraft -type f -iname "*.html" | head -n 1)
+
+          if [ -z "$HTML_FILE" ]; then
+            echo "ERROR: No HTML file found in the downloaded archive."
+            exit 1
+          fi
+
+          echo "Found HTML: $HTML_FILE"
+
+          cp "$HTML_FILE" index.html
+
+      - name: Clean up
+        run: |
+          rm -rf eaglercraft eaglercraft.zip
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add index.html
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: update Eaglercraft"
+          git push
+```
